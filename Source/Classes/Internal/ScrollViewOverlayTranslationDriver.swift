@@ -45,6 +45,7 @@ class ScrollViewOverlayTranslationDriver: OverlayTranslationDriver, OverlayScrol
         guard let controller = translationController else { return }
         let previousTranslation = scrollViewTranslation
         scrollViewTranslation = scrollView.panGestureRecognizer.translation(in: scrollView).y
+        scrollViewTranslation = scrollView.transform == .identity ? scrollViewTranslation : -scrollViewTranslation
         if shouldDragOverlay(following: scrollView) {
             overlayTranslation += scrollViewTranslation - previousTranslation
             let offset = adjustedContentOffset(dragging: scrollView)
@@ -80,8 +81,10 @@ class ScrollViewOverlayTranslationDriver: OverlayTranslationDriver, OverlayScrol
         // If the overlay is in flight and the user scrolls bottom, we ignore the velocity and we do not
         // modify the target offset.
         let adjustedVelocity: CGPoint
+        var velocity = velocity
+        velocity.y = scrollView.transform == .identity ? velocity.y : -velocity.y
         if shouldDragOverlay(following: scrollView) {
-            adjustedVelocity = velocity
+            adjustedVelocity =  velocity
         } else {
             adjustedVelocity = .zero
         }
@@ -92,7 +95,8 @@ class ScrollViewOverlayTranslationDriver: OverlayTranslationDriver, OverlayScrol
 
     private func shouldDragOverlay(following scrollView: UIScrollView) -> Bool {
         guard let controller = translationController, scrollView.isTracking else { return false }
-        let velocity = scrollView.panGestureRecognizer.velocity(in: nil).y
+        var velocity = scrollView.panGestureRecognizer.velocity(in: nil).y
+        velocity = scrollView.transform == .identity ? velocity : -velocity
         let movesUp = velocity < 0
         switch controller.translationPosition {
         case .bottom:
