@@ -45,7 +45,8 @@ class PanGestureOverlayTranslationDriver: NSObject, OverlayTranslationDriver {
         case .changed:
             controller.dragOverlay(withOffset: offset, usesFunction: true)
         case .failed, .ended:
-            let velocity = sender.velocity(in: nil)
+            var velocity = sender.velocity(in: nil)
+            velocity.y = view.transform == .identity ? velocity.y : -velocity.y
             controller.endOverlayTranslation(withVelocity: velocity)
         case .cancelled, .possible:
             break
