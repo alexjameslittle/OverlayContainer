@@ -72,8 +72,12 @@ public class OverlayContainerViewController: UIViewController {
 
     /// The overlay container's style.
     public let style: OverlayStyle
+    
+    public var panGesture: UIGestureRecognizer {
+        return overlayPanGesture
+    }
 
-    public lazy var overlayPanGesture: OverlayTranslationGestureRecognizer = self.makePanGesture()
+    private lazy var overlayPanGesture: OverlayTranslationGestureRecognizer = self.makePanGesture()
     private lazy var overlayContainerView = OverlayContainerView()
     private lazy var overlayTranslationView = OverlayTranslationView()
     private lazy var overlayTranslationContainerView = OverlayTranslationContainerView()
