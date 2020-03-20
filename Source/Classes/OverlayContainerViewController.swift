@@ -15,7 +15,7 @@ import UIKit
 ///
 /// OverlayContainer uses the last view controller of its viewControllers as the overlay view controller.
 /// It stacks the other view controllers on top of each other, if any, and adds them underneath the overlay view controller.
-public class OverlayContainerViewController: UIViewController {
+open class OverlayContainerViewController: UIViewController {
 
     /// `OverlayStyle` defines how the overlay view controllers will be constrained in the container.
     public enum OverlayStyle {
@@ -31,7 +31,7 @@ public class OverlayContainerViewController: UIViewController {
     }
 
     /// The container's delegate.
-    public var delegate: OverlayContainerViewControllerDelegate? {
+    open var delegate: OverlayContainerViewControllerDelegate? {
         set {
             configuration.delegate = newValue
             configuration.invalidateOverlayMetrics()
@@ -43,7 +43,7 @@ public class OverlayContainerViewController: UIViewController {
     }
 
     /// The overlay view controllers.
-    public var viewControllers: [UIViewController] = [] {
+    open var viewControllers: [UIViewController] = [] {
         didSet {
             guard isViewLoaded else { return }
             oldValue.forEach { removeChild($0) }
@@ -53,16 +53,16 @@ public class OverlayContainerViewController: UIViewController {
     }
 
     /// The visible overlay view controller.
-    public var topViewController: UIViewController? {
+    open var topViewController: UIViewController? {
         return viewControllers.last
     }
 
-    public override var childForStatusBarStyle: UIViewController? {
+    open override var childForStatusBarStyle: UIViewController? {
         return topViewController
     }
 
     /// The scroll view managing the overlay translation.
-    public weak var drivingScrollView: UIScrollView? {
+    weak open var drivingScrollView: UIScrollView? {
         didSet {
             guard drivingScrollView !== oldValue else { return }
             guard isViewLoaded else { return }
@@ -113,18 +113,18 @@ public class OverlayContainerViewController: UIViewController {
 
     // MARK: - UIViewController
 
-    public override func loadView() {
+    open override func loadView() {
         view = PassThroughView()
         loadContainerViews()
         loadOverlayViews()
     }
 
-    public override func viewDidLoad() {
+    open override func viewDidLoad() {
         super.viewDidLoad()
         setUpPanGesture()
     }
 
-    public override func viewWillLayoutSubviews() {
+    open override func viewWillLayoutSubviews() {
         // (gz) 2019-06-10 According to the documentation, the default implementation of
         // `viewWillLayoutSubviews` does nothing.
         // Nethertheless in its `Changing Constraints` Guide, Apple recommends to call it.
@@ -159,7 +159,7 @@ public class OverlayContainerViewController: UIViewController {
     /// - parameter completion: The block to execute after the translation finishes.
     ///   This block has no return value and takes no parameters. You may specify nil for this parameter.
     ///
-    public func moveOverlay(toNotchAt index: Int, animated: Bool, completion: (() -> Void)? = nil) {
+    open func moveOverlay(toNotchAt index: Int, animated: Bool, completion: (() -> Void)? = nil) {
         loadViewIfNeeded()
         translationController?.scheduleOverlayTranslation(
             .toIndex(index),
@@ -177,7 +177,7 @@ public class OverlayContainerViewController: UIViewController {
     /// and animates the translation.
     /// Use `moveOverlay(toNotchAt:animated:completion:)` to override this behavior.
     ///
-    public func invalidateNotchHeights() {
+    open func invalidateNotchHeights() {
         configuration.invalidateOverlayMetrics()
         translationController?.scheduleOverlayTranslation(
             .basedOnTargetPolicy,
