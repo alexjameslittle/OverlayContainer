@@ -56,15 +56,18 @@ class HeightConstraintOverlayTranslationController: OverlayTranslationController
     }
 
     private let configuration: OverlayContainerConfiguration
+    private let isInverted: Bool
     private let translationHeightConstraint: NSLayoutConstraint
     private var isDragging = false
 
     // MARK: - Life Cycle
 
     init(translationHeightConstraint: NSLayoutConstraint,
-         configuration: OverlayContainerConfiguration) {
+         configuration: OverlayContainerConfiguration,
+         isInverted: Bool) {
         self.translationHeightConstraint = translationHeightConstraint
         self.configuration = configuration
+        self.isInverted = isInverted
     }
 
     // MARK: - Public
@@ -167,8 +170,12 @@ class HeightConstraintOverlayTranslationController: OverlayTranslationController
     }
 
     var translationPosition: OverlayTranslationPosition {
-        let isAtTop = translationHeight == maximumReachableNotchHeight()
-        let isAtBottom = translationHeight == minimumReachableNotchHeight()
+        var isAtTop = translationHeight == maximumReachableNotchHeight()
+        var isAtBottom = translationHeight == minimumReachableNotchHeight()
+
+        isAtTop = isInverted ? !isAtTop : isAtTop
+        isAtBottom = isInverted ? !isAtBottom : isAtBottom
+
         if isAtTop && isAtBottom {
             return .stationary
         }
