@@ -72,6 +72,7 @@ open class OverlayContainerViewController: UIViewController {
 
     /// The overlay container's style.
     public let style: OverlayStyle
+    public let isInverted: Bool
     
     public var panGesture: UIGestureRecognizer {
         return overlayPanGesture
@@ -101,13 +102,15 @@ open class OverlayContainerViewController: UIViewController {
     /// - parameter style: The style uses by the container. The default value is `flexibleHeight`.
     ///
     /// - returns: The new `OverlayContainerViewController` instance.
-    public init(style: OverlayStyle = .flexibleHeight) {
+    public init(style: OverlayStyle = .flexibleHeight, isInverted: Bool = false) {
         self.style = style
+        self.isInverted = isInverted
         super.init(nibName: nil, bundle: nil)
     }
 
     public required init?(coder aDecoder: NSCoder) {
         self.style = .flexibleHeight
+        self.isInverted = false
         super.init(coder: aDecoder)
     }
 
@@ -254,7 +257,8 @@ open class OverlayContainerViewController: UIViewController {
         var drivers: [OverlayTranslationDriver] = []
         let panGestureDriver = PanGestureOverlayTranslationDriver(
             translationController: translationController,
-            panGestureRecognizer: overlayPanGesture
+            panGestureRecognizer: overlayPanGesture,
+            isInverted: isInverted
         )
         drivers.append(panGestureDriver)
         let scrollView = drivingScrollView ?? configuration.scrollView(drivingOverlay: overlayController)
@@ -262,7 +266,8 @@ open class OverlayContainerViewController: UIViewController {
             overlayPanGesture.drivingScrollView = scrollView
             let driver = ScrollViewOverlayTranslationDriver(
                 translationController: translationController,
-                scrollView: scrollView
+                scrollView: scrollView,
+                isInverted: isInverted
             )
             drivers.append(driver)
         }

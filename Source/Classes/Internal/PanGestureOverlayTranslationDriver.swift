@@ -11,13 +11,16 @@ class PanGestureOverlayTranslationDriver: NSObject, OverlayTranslationDriver {
 
     private weak var translationController: OverlayTranslationController?
     private let panGestureRecognizer: OverlayTranslationGestureRecognizer
+    private let isInverted: Bool
 
     // MARK: - Life Cycle
 
     init(translationController: OverlayTranslationController,
-         panGestureRecognizer: OverlayTranslationGestureRecognizer) {
+         panGestureRecognizer: OverlayTranslationGestureRecognizer,
+         isInverted: Bool) {
         self.translationController = translationController
         self.panGestureRecognizer = panGestureRecognizer
+        self.isInverted = isInverted
         super.init()
         panGestureRecognizer.addTarget(self, action: #selector(overlayPanGestureAction(_:)))
     }
@@ -33,7 +36,7 @@ class PanGestureOverlayTranslationDriver: NSObject, OverlayTranslationDriver {
     @objc private func overlayPanGestureAction(_ sender: OverlayTranslationGestureRecognizer) {
         guard let controller = translationController, let view = sender.view else { return }
         let translation = sender.translation(in: nil)
-        let offset = view.transform == .identity ? translation.y : -translation.y
+        let offset = isInverted ? -translation.y : translation.y
         switch sender.state {
         case .began:
             controller.startOverlayTranslation()
@@ -46,7 +49,7 @@ class PanGestureOverlayTranslationDriver: NSObject, OverlayTranslationDriver {
             controller.dragOverlay(withOffset: offset, usesFunction: true)
         case .failed, .ended:
             var velocity = sender.velocity(in: nil)
-            velocity.y = view.transform == .identity ? velocity.y : -velocity.y
+            velocity.y = isInverted ? -velocity.y : velocity.y
             controller.endOverlayTranslation(withVelocity: velocity)
         case .cancelled, .possible:
             break

@@ -11,6 +11,7 @@ class ScrollViewOverlayTranslationDriver: OverlayTranslationDriver, OverlayScrol
 
     weak var translationController: OverlayTranslationController?
     weak var scrollView: UIScrollView?
+    let isInverted: Bool
 
     private let scrollViewDelegateProxy = OverlayScrollViewDelegateProxy()
 
@@ -22,9 +23,11 @@ class ScrollViewOverlayTranslationDriver: OverlayTranslationDriver, OverlayScrol
 
     // MARK: - Life Cycle
 
-    init(translationController: OverlayTranslationController, scrollView: UIScrollView) {
+    init(translationController: OverlayTranslationController, scrollView: UIScrollView,
+         isInverted: Bool) {
         self.translationController = translationController
         self.scrollView = scrollView
+        self.isInverted = isInverted
         scrollViewDelegateProxy.forward(to: self, delegateInvocationsFrom: scrollView)
         lastContentOffsetWhileScrolling = scrollView.contentOffset
     }
@@ -44,7 +47,8 @@ class ScrollViewOverlayTranslationDriver: OverlayTranslationDriver, OverlayScrol
     func overlayScrollViewDidScroll(_ scrollView: UIScrollView) {
         guard let controller = translationController else { return }
         let previousTranslation = scrollViewTranslation
-        scrollViewTranslation = scrollView.panGestureRecognizer.translation(in: scrollView).y
+        let translation = scrollView.panGestureRecognizer.translation(in: scrollView)
+        scrollViewTranslation = isInverted ? -translation.y : translation.y
         if shouldDragOverlay(following: scrollView) {
             overlayTranslation += scrollViewTranslation - previousTranslation
             let offset = adjustedContentOffset(dragging: scrollView)
@@ -92,8 +96,9 @@ class ScrollViewOverlayTranslationDriver: OverlayTranslationDriver, OverlayScrol
 
     private func shouldDragOverlay(following scrollView: UIScrollView) -> Bool {
         guard let controller = translationController, scrollView.isTracking else { return false }
-        let velocity = scrollView.panGestureRecognizer.velocity(in: nil).y
-        let movesUp = velocity < 0
+        let velocity = scrollView.panGestureRecognizer.velocity(in: nil)
+        let velocityY = isInverted ? -velocity.y : velocity.y
+        let movesUp = velocityY < 0
         switch controller.translationPosition {
         case .bottom:
             return !scrollView.isContentOriginInBounds && scrollView.scrollsUp
