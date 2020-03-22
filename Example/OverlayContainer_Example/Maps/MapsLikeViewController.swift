@@ -25,7 +25,7 @@ class MapsLikeViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        let overlayController = OverlayContainerViewController()
+        let overlayController = OverlayContainerViewController(position: .top)
         overlayController.delegate = self
         overlayController.viewControllers = [SearchViewController(showsCloseAction: false)]
         addChild(overlayController, in: overlayContainerView)

@@ -11,6 +11,7 @@ class ScrollViewOverlayTranslationDriver: OverlayTranslationDriver, OverlayScrol
 
     weak var translationController: OverlayTranslationController?
     weak var scrollView: UIScrollView?
+    private let position: OverlayContainerViewController.OverlayPosition
 
     private let scrollViewDelegateProxy = OverlayScrollViewDelegateProxy()
 
@@ -22,9 +23,11 @@ class ScrollViewOverlayTranslationDriver: OverlayTranslationDriver, OverlayScrol
 
     // MARK: - Life Cycle
 
-    init(translationController: OverlayTranslationController, scrollView: UIScrollView) {
+    init(translationController: OverlayTranslationController, scrollView: UIScrollView,
+         position: OverlayContainerViewController.OverlayPosition) {
         self.translationController = translationController
         self.scrollView = scrollView
+        self.position = position
         scrollViewDelegateProxy.forward(to: self, delegateInvocationsFrom: scrollView)
         lastContentOffsetWhileScrolling = scrollView.contentOffset
     }
@@ -96,11 +99,27 @@ class ScrollViewOverlayTranslationDriver: OverlayTranslationDriver, OverlayScrol
         let movesUp = velocity < 0
         switch controller.translationPosition {
         case .bottom:
-            return !scrollView.isContentOriginInBounds && scrollView.scrollsUp
+            let shouldDrag = !scrollView.isContentOriginInBounds && scrollView.scrollsUp
+            return shouldDrag
         case .top:
-            return scrollView.isContentOriginInBounds && !movesUp
+            switch position {
+            case .bottom:
+                let shouldDrag = scrollView.isContentOriginInBounds && !movesUp
+                return shouldDrag
+            case .top:
+                let shouldDrag = scrollView.isContentEndInBounds && movesUp
+                return shouldDrag
+            }
         case .inFlight:
-            return scrollView.isContentOriginInBounds || scrollView.scrollsUp
+            switch position {
+            case .bottom:
+                let shouldDrag = scrollView.isContentOriginInBounds || scrollView.scrollsUp
+                return shouldDrag
+            case .top:
+                let shouldDrag = scrollView.isContentEndInBounds || scrollView.scrollsDown
+                return shouldDrag
+            }
+
         case .stationary:
             return false
         }
@@ -110,22 +129,38 @@ class ScrollViewOverlayTranslationDriver: OverlayTranslationDriver, OverlayScrol
         guard let controller = translationController else { return .zero }
         var contentOffset = lastContentOffsetWhileScrolling
         let topInset = -scrollView.oc_adjustedContentInset.top
+        let bottomInset = (scrollView.contentSize.height - scrollView.frame.height)
         switch controller.translationPosition {
-        case .inFlight, .top:
+        case .inFlight, .top, .bottom:
             // (gz) 2018-11-26 The user raised its finger in the top or in flight positions while scrolling bottom.
             // If the scroll's animation did not finish when the user translates the overlay,
             // the content offset may have exceeded the top inset. We adjust it.
-            if contentOffset.y < topInset {
-                contentOffset.y = topInset
+            switch position {
+            case .bottom:
+                if contentOffset.y < topInset {
+                    contentOffset.y = topInset
+                }
+            case .top:
+                if contentOffset.y > bottomInset {
+                    contentOffset.y = bottomInset
+                }
             }
-        case .bottom, .stationary:
+        case .stationary:
             break
         }
         // (gz) 2018-11-26 Between two `overlayScrollViewDidScroll:` calls,
         // the scrollView exceeds the top's contentInset. We adjust the target.
-        if (contentOffset.y - topInset) * (scrollView.contentOffset.y - topInset) < 0 {
-            contentOffset.y = topInset
+        switch position {
+        case .bottom:
+            if (contentOffset.y - topInset) * (scrollView.contentOffset.y - topInset) < 0 {
+                contentOffset.y = topInset
+            }
+        case .top:
+            if (contentOffset.y - bottomInset) * (scrollView.contentOffset.y - bottomInset) < 0 {
+                contentOffset.y = bottomInset
+            }
         }
+
         return contentOffset
     }
 }

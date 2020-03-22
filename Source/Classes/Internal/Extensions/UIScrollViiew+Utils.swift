@@ -13,12 +13,29 @@ extension UIScrollView {
         return panGestureRecognizer.yDirection == .up
     }
 
+    var scrollsDown: Bool {
+        return panGestureRecognizer.yDirection == .down
+    }
+
     var isContentOriginInBounds: Bool {
         return contentOffset.y <= -oc_adjustedContentInset.top
     }
 
+    var isContentEndInBounds: Bool {
+        return contentOffset.y >= (contentSize.height - frame.height)
+    }
+
     func scrollToTop() {
         contentOffset.y = -oc_adjustedContentInset.top
+    }
+
+    func isContentOriginInBounds(position: OverlayContainerViewController.OverlayPosition) -> Bool {
+        switch position {
+        case .bottom:
+            return contentOffset.y <= -oc_adjustedContentInset.top
+        case .top:
+            return contentOffset.y >= -oc_adjustedContentInset.top
+        }
     }
 }
 

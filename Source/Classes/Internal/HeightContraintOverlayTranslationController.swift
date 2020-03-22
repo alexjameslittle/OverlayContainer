@@ -55,6 +55,7 @@ class HeightConstraintOverlayTranslationController: OverlayTranslationController
         return configuration.heightForNotch(at: translationEndNotchIndex)
     }
 
+    private let position: OverlayContainerViewController.OverlayPosition
     private let configuration: OverlayContainerConfiguration
     private let translationHeightConstraint: NSLayoutConstraint
     private var isDragging = false
@@ -62,9 +63,11 @@ class HeightConstraintOverlayTranslationController: OverlayTranslationController
     // MARK: - Life Cycle
 
     init(translationHeightConstraint: NSLayoutConstraint,
-         configuration: OverlayContainerConfiguration) {
+         configuration: OverlayContainerConfiguration,
+         position: OverlayContainerViewController.OverlayPosition) {
         self.translationHeightConstraint = translationHeightConstraint
         self.configuration = configuration
+        self.position = position
     }
 
     // MARK: - Public
@@ -204,7 +207,15 @@ class HeightConstraintOverlayTranslationController: OverlayTranslationController
         guard let viewController = overlayViewController else { return }
         let maximumHeight = maximumReachableNotchHeight()
         let minimumHeight = minimumReachableNotchHeight()
-        let translation = translationEndNotchHeight - offset
+
+        let adjustedOffset: CGFloat
+        switch position {
+        case .bottom:
+            adjustedOffset = offset
+        case .top:
+            adjustedOffset = -offset
+        }
+        let translation = translationEndNotchHeight - adjustedOffset
         let height: CGFloat
         if usesFunction {
             let parameters = ConcreteOverlayTranslationParameters(
