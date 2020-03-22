@@ -122,7 +122,12 @@ class ScrollViewOverlayTranslationDriver: OverlayTranslationDriver, OverlayScrol
             }
 
         case .stationary:
-            return false
+            switch position {
+            case .bottom:
+                return scrollView.scrollsUp
+            case .top:
+                return scrollView.scrollsDown
+            }
         }
     }
 
