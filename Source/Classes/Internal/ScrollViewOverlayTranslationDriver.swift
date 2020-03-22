@@ -118,11 +118,21 @@ class ScrollViewOverlayTranslationDriver: OverlayTranslationDriver, OverlayScrol
             -scrollView.oc_adjustedContentInset.bottom :
             -scrollView.oc_adjustedContentInset.top
         switch controller.translationPosition {
-        case .inFlight, .top, .bottom:
+        case .inFlight:
+            if contentOffset.y < topInset {
+                contentOffset.y = topInset
+            }
+        case .top:
             // (gz) 2018-11-26 The user raised its finger in the top or in flight positions while scrolling bottom.
             // If the scroll's animation did not finish when the user translates the overlay,
             // the content offset may have exceeded the top inset. We adjust it.
-            if contentOffset.y < topInset {
+            if !isInverted,
+                contentOffset.y < topInset {
+                contentOffset.y = topInset
+            }
+        case .bottom:
+            if isInverted,
+                contentOffset.y < topInset {
                 contentOffset.y = topInset
             }
         case .stationary:
