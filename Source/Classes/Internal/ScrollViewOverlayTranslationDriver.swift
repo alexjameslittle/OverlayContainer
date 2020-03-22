@@ -48,7 +48,7 @@ class ScrollViewOverlayTranslationDriver: OverlayTranslationDriver, OverlayScrol
         guard let controller = translationController else { return }
         let previousTranslation = scrollViewTranslation
         let translation = scrollView.panGestureRecognizer.translation(in: scrollView)
-        scrollViewTranslation = isInverted ? -translation.y : translation.y
+        scrollViewTranslation = translation.y
         if shouldDragOverlay(following: scrollView) {
             overlayTranslation += scrollViewTranslation - previousTranslation
             let offset = adjustedContentOffset(dragging: scrollView)
@@ -96,9 +96,8 @@ class ScrollViewOverlayTranslationDriver: OverlayTranslationDriver, OverlayScrol
 
     private func shouldDragOverlay(following scrollView: UIScrollView) -> Bool {
         guard let controller = translationController, scrollView.isTracking else { return false }
-        let velocity = scrollView.panGestureRecognizer.velocity(in: nil)
-        let velocityY = isInverted ? -velocity.y : velocity.y
-        let movesUp = velocityY < 0
+        let velocity = scrollView.panGestureRecognizer.velocity(in: nil).y
+        let movesUp = velocity < 0
         switch controller.translationPosition {
         case .bottom:
             let shouldDrag = !scrollView.isContentOriginInBounds && scrollView.scrollsUp

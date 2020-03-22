@@ -289,8 +289,7 @@ open class OverlayContainerViewController: UIViewController {
         var drivers: [OverlayTranslationDriver] = []
         let panGestureDriver = PanGestureOverlayTranslationDriver(
             translationController: translationController,
-            panGestureRecognizer: overlayPanGesture,
-            isInverted: isInverted
+            panGestureRecognizer: overlayPanGesture
         )
         drivers.append(panGestureDriver)
         let scrollView = drivingScrollView ?? configuration.scrollView(drivingOverlay: overlayController)
