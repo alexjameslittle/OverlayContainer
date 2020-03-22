@@ -30,6 +30,12 @@ open class OverlayContainerViewController: UIViewController {
         case expandableHeight
     }
 
+    public enum OverlayPosition {
+        case bottom
+
+        case top
+    }
+
     /// The container's delegate.
     open var delegate: OverlayContainerViewControllerDelegate? {
         set {
@@ -72,7 +78,7 @@ open class OverlayContainerViewController: UIViewController {
 
     /// The overlay container's style.
     public let style: OverlayStyle
-    public let isInverted: Bool
+    public let position: OverlayPosition
     
     public var panGesture: UIGestureRecognizer {
         return overlayPanGesture
@@ -102,15 +108,15 @@ open class OverlayContainerViewController: UIViewController {
     /// - parameter style: The style uses by the container. The default value is `flexibleHeight`.
     ///
     /// - returns: The new `OverlayContainerViewController` instance.
-    public init(style: OverlayStyle = .flexibleHeight, isInverted: Bool = false) {
+    public init(style: OverlayStyle = .flexibleHeight, position: OverlayPosition = .bottom) {
         self.style = style
-        self.isInverted = isInverted
+        self.position = position
         super.init(nibName: nil, bundle: nil)
     }
 
     public required init?(coder aDecoder: NSCoder) {
         self.style = .flexibleHeight
-        self.isInverted = false
+        self.position = .bottom
         super.init(coder: aDecoder)
     }
 
@@ -199,14 +205,29 @@ open class OverlayContainerViewController: UIViewController {
         overlayTranslationContainerView.pinToSuperview()
         overlayTranslationContainerView.addSubview(overlayTranslationView)
         overlayTranslationView.addSubview(overlayContainerView)
-        overlayTranslationView.pinToSuperview(edges: [.bottom, .left, .right])
-        overlayContainerView.pinToSuperview(edges: [.left, .top, .right])
+        switch position {
+        case .bottom:
+            overlayTranslationView.pinToSuperview(edges: [.bottom, .left, .right])
+            overlayContainerView.pinToSuperview(edges: [.left, .top, .right])
+        case .top:
+            overlayTranslationView.pinToSuperview(edges: [.top, .left, .right])
+            overlayContainerView.pinToSuperview(edges: [.left, .bottom, .right])
+        }
+
         translationHeightConstraint = overlayTranslationView.heightAnchor.constraint(equalToConstant: 0)
         switch style {
         case .flexibleHeight:
-            overlayContainerViewStyleConstraint = overlayContainerView.bottomAnchor.constraint(
-                equalTo: overlayTranslationView.bottomAnchor
-            )
+            switch position {
+            case .bottom:
+                overlayContainerViewStyleConstraint = overlayContainerView.bottomAnchor.constraint(
+                    equalTo: overlayTranslationView.bottomAnchor
+                )
+            case .top:
+                overlayContainerViewStyleConstraint = overlayContainerView.topAnchor.constraint(
+                    equalTo: overlayTranslationView.topAnchor
+                )
+            }
+
         case .rigid:
             overlayContainerViewStyleConstraint = overlayContainerView.heightAnchor.constraint(
                 equalToConstant: 0
@@ -216,10 +237,20 @@ open class OverlayContainerViewController: UIViewController {
                 equalToConstant: 0
             )
             overlayContainerViewStyleConstraint?.priority = .defaultHigh
-            let bottomConstraint = overlayContainerView.bottomAnchor.constraint(
-                greaterThanOrEqualTo: overlayTranslationView.bottomAnchor
-            )
-            bottomConstraint.isActive = true
+
+            switch position {
+            case .bottom:
+                let bottomConstraint = overlayContainerView.bottomAnchor.constraint(
+                    greaterThanOrEqualTo: overlayTranslationView.bottomAnchor
+                )
+                bottomConstraint.isActive = true
+            case .top:
+                let topConstraint = overlayContainerView.topAnchor.constraint(
+                    lessThanOrEqualTo: overlayTranslationView.topAnchor
+                )
+                topConstraint.isActive = true
+            }
+
         }
         loadTranslationController()
     }
@@ -229,7 +260,7 @@ open class OverlayContainerViewController: UIViewController {
         translationController = HeightConstraintOverlayTranslationController(
             translationHeightConstraint: translationHeightConstraint,
             configuration: configuration,
-            isInverted: isInverted
+            position: position
         )
         translationController?.delegate = self
         translationController?.scheduleOverlayTranslation(
@@ -268,7 +299,7 @@ open class OverlayContainerViewController: UIViewController {
             let driver = ScrollViewOverlayTranslationDriver(
                 translationController: translationController,
                 scrollView: scrollView,
-                isInverted: isInverted
+                position: position
             )
             drivers.append(driver)
         }
