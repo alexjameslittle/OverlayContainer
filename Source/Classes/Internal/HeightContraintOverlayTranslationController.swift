@@ -237,6 +237,17 @@ class HeightConstraintOverlayTranslationController: OverlayTranslationController
     }
 
     func endOverlayTranslation(withVelocity velocity: CGPoint) {
+        let adjustedVelocity: CGFloat
+        switch position {
+        case .bottom:
+            adjustedVelocity = velocity.y
+        case .top:
+            adjustedVelocity = -velocity.y
+        }
+
+        var velocity = velocity
+        velocity.y = adjustedVelocity
+
         if isDragging {
             delegate?.translationController(self, willEndDraggingAtVelocity: velocity)
         }
